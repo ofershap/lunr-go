@@ -22,21 +22,35 @@ func (e *ParseError) Error() string {
 	return e.Message
 }
 
-// MaxEditDistance bounds fuzzy-matching edit distance. lunr.js accepts any
-// distance and builds a token set whose size grows with it, so absurd values
-// (for example ~99999999) hang for a very long time; lunr's own docs advise
-// distances below 3. This port rejects distances above MaxEditDistance with a
-// clear error instead of hanging: an intentional, documented divergence from
-// lunr.js behaviour.
-const MaxEditDistance = 10
+// Fuzzy matching bounds. lunr.js accepts any edit distance on any term and
+// builds a token set whose size grows roughly with term-length^distance, so
+// absurd values (for example ~99999999) hang for a very long time, and even
+// moderate combinations get expensive (measured on the 2,000-document bench
+// corpus: distance 4 on a 44-character term takes ~15s). lunr's own docs
+// advise distances below 3. This port rejects fuzzy clauses beyond the bounds
+// below with a clear error instead of hanging: an intentional, documented
+// divergence from lunr.js behaviour. Worst measured case inside the bounds
+// (distance 3 on a 32-character term): ~150ms.
+const (
+	// MaxEditDistance is the largest accepted fuzzy edit distance.
+	MaxEditDistance = 3
+	// MaxFuzzyTermLength is the largest term length, in UTF-16 code units
+	// (JavaScript string semantics), accepted for fuzzy matching.
+	MaxFuzzyTermLength = 32
+)
 
-// EditDistanceError is returned by Index.Query and Index.Search when a clause
-// requests a fuzzy edit distance above MaxEditDistance.
-type EditDistanceError struct {
-	Distance int
-	Max      int
+// FuzzyLimitError is returned by Index.Query and Index.Search when a fuzzy
+// clause exceeds MaxEditDistance or MaxFuzzyTermLength.
+type FuzzyLimitError struct {
+	Distance      int
+	TermLength    int
+	MaxDistance   int
+	MaxTermLength int
 }
 
-func (e *EditDistanceError) Error() string {
-	return fmt.Sprintf("edit distance %d exceeds the supported maximum of %d", e.Distance, e.Max)
+func (e *FuzzyLimitError) Error() string {
+	if e.Distance > e.MaxDistance {
+		return fmt.Sprintf("edit distance %d exceeds the supported maximum of %d", e.Distance, e.MaxDistance)
+	}
+	return fmt.Sprintf("fuzzy term length %d exceeds the supported maximum of %d", e.TermLength, e.MaxTermLength)
 }

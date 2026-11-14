@@ -66,12 +66,18 @@ func (idx *Index) Query(fn func(q *Query)) ([]*Result, error) {
 
 	fn(query)
 
-	// Guard the resource hazard lunr.js leaves open: a huge edit distance
-	// builds a token set whose size grows with the distance and effectively
-	// hangs the search. Reject it before any work is done.
+	// Guard the resource hazard lunr.js leaves open: fuzzy token-set size
+	// grows roughly with term-length^distance, so large distances or long
+	// fuzzy terms effectively hang the search. Reject them before any work
+	// is done.
 	for _, clause := range query.Clauses {
-		if clause.HasEditDistance && clause.EditDistance > MaxEditDistance {
-			return nil, &EditDistanceError{Distance: clause.EditDistance, Max: MaxEditDistance}
+		if clause.HasEditDistance && (clause.EditDistance > MaxEditDistance || len(toU16(clause.Term)) > MaxFuzzyTermLength) {
+			return nil, &FuzzyLimitError{
+				Distance:      clause.EditDistance,
+				TermLength:    len(toU16(clause.Term)),
+				MaxDistance:   MaxEditDistance,
+				MaxTermLength: MaxFuzzyTermLength,
+			}
 		}
 	}
 

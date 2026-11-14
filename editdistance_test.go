@@ -6,11 +6,12 @@ package lunr
 
 import (
 	"errors"
+	"strings"
 	"testing"
 	"time"
 )
 
-func newEditDistanceTestIndex(t *testing.T) *Index {
+func newFuzzyLimitTestIndex(t *testing.T) *Index {
 	t.Helper()
 	idx, err := New(func(b *Builder) {
 		b.Ref("id")
@@ -30,18 +31,18 @@ func newEditDistanceTestIndex(t *testing.T) *Index {
 // same query and hangs on it (verified against Node 22); this port diverges
 // intentionally and rejects distances above MaxEditDistance.
 func TestSearchRejectsAbsurdEditDistance(t *testing.T) {
-	idx := newEditDistanceTestIndex(t)
+	idx := newFuzzyLimitTestIndex(t)
 	start := time.Now()
 	_, err := idx.Search("go~99999999")
 	if err == nil {
 		t.Fatal("expected an error for edit distance 99999999")
 	}
-	var ed *EditDistanceError
-	if !errors.As(err, &ed) {
-		t.Fatalf("expected *EditDistanceError, got %T: %v", err, err)
+	var fl *FuzzyLimitError
+	if !errors.As(err, &fl) {
+		t.Fatalf("expected *FuzzyLimitError, got %T: %v", err, err)
 	}
-	if ed.Distance != 99999999 || ed.Max != MaxEditDistance {
-		t.Fatalf("unexpected error fields: %+v", ed)
+	if fl.Distance != 99999999 || fl.MaxDistance != MaxEditDistance {
+		t.Fatalf("unexpected error fields: %+v", fl)
 	}
 	if elapsed := time.Since(start); elapsed > time.Second {
 		t.Fatalf("rejection took %v, expected fail-fast", elapsed)
@@ -51,20 +52,49 @@ func TestSearchRejectsAbsurdEditDistance(t *testing.T) {
 // The guard applies to programmatically built queries too, not only to the
 // query-string parser.
 func TestQueryRejectsAbsurdEditDistance(t *testing.T) {
-	idx := newEditDistanceTestIndex(t)
+	idx := newFuzzyLimitTestIndex(t)
 	_, err := idx.Query(func(q *Query) {
 		q.Term([]string{"go"}, WithEditDistance(MaxEditDistance+1))
 	})
-	var ed *EditDistanceError
-	if !errors.As(err, &ed) {
-		t.Fatalf("expected *EditDistanceError, got %T: %v", err, err)
+	var fl *FuzzyLimitError
+	if !errors.As(err, &fl) {
+		t.Fatalf("expected *FuzzyLimitError, got %T: %v", err, err)
 	}
 }
 
-// Distances at or below the bound keep lunr.js behaviour.
-func TestSearchAllowsBoundedEditDistance(t *testing.T) {
-	idx := newEditDistanceTestIndex(t)
+// Fuzzy token-set cost grows roughly with term-length^distance (measured:
+// distance 3 on a 100-character term takes ~14s on the 2,000-document bench
+// corpus), so long fuzzy terms are rejected even at small distances. The
+// length bound uses UTF-16 code units, JavaScript string semantics.
+func TestSearchRejectsLongFuzzyTerm(t *testing.T) {
+	idx := newFuzzyLimitTestIndex(t)
+	term := strings.Repeat("a", MaxFuzzyTermLength) + "b"
+	_, err := idx.Search(term + "~1")
+	var fl *FuzzyLimitError
+	if !errors.As(err, &fl) {
+		t.Fatalf("expected *FuzzyLimitError, got %T: %v", err, err)
+	}
+	if fl.TermLength != MaxFuzzyTermLength+1 {
+		t.Fatalf("unexpected error fields: %+v", fl)
+	}
+}
+
+// A long term without fuzzy matching is unaffected by the bound.
+func TestSearchAllowsLongExactTerm(t *testing.T) {
+	idx := newFuzzyLimitTestIndex(t)
+	term := strings.Repeat("a", 200)
+	if _, err := idx.Search(term); err != nil {
+		t.Fatalf("long exact term should be accepted: %v", err)
+	}
+}
+
+// Distances and term lengths inside the bounds keep lunr.js behaviour.
+func TestSearchAllowsBoundedFuzzy(t *testing.T) {
+	idx := newFuzzyLimitTestIndex(t)
 	if _, err := idx.Search("search~2"); err != nil {
 		t.Fatalf("edit distance 2 should be accepted: %v", err)
+	}
+	if _, err := idx.Search("search~3"); err != nil {
+		t.Fatalf("edit distance 3 should be accepted: %v", err)
 	}
 }
