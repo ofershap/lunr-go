@@ -66,6 +66,15 @@ func (idx *Index) Query(fn func(q *Query)) ([]*Result, error) {
 
 	fn(query)
 
+	// Guard the resource hazard lunr.js leaves open: a huge edit distance
+	// builds a token set whose size grows with the distance and effectively
+	// hangs the search. Reject it before any work is done.
+	for _, clause := range query.Clauses {
+		if clause.HasEditDistance && clause.EditDistance > MaxEditDistance {
+			return nil, &EditDistanceError{Distance: clause.EditDistance, Max: MaxEditDistance}
+		}
+	}
+
 	for _, clause := range query.Clauses {
 		var terms []string
 		clauseMatches := emptySet

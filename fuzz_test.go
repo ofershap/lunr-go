@@ -59,13 +59,6 @@ func FuzzSearch(f *testing.F) {
 		if !utf8.ValidString(s) || len(s) > 1024 {
 			return
 		}
-		// Skip edit distances beyond lunr's documented guidance (< 3):
-		// lunr.js and this port both build a token set whose size grows
-		// with the distance, so absurd values like ~99999999 hang by
-		// design (verified against node). Not a port defect.
-		if hasLargeEditDistance(s, 3) {
-			return
-		}
 		idx, err := New(func(b *Builder) {
 			b.Ref("id")
 			_ = b.Field("title", FieldAttributes{})
@@ -78,25 +71,4 @@ func FuzzSearch(f *testing.F) {
 		}
 		_, _ = idx.Search(s)
 	})
-}
-
-// hasLargeEditDistance reports whether s contains a ~N modifier with N
-// greater than max.
-func hasLargeEditDistance(s string, max int) bool {
-	u := toU16(s)
-	for i := 0; i < len(u); i++ {
-		if u[i] != '~' {
-			continue
-		}
-		j := i + 1
-		n := 0
-		for j < len(u) && u[j] >= '0' && u[j] <= '9' {
-			n = n*10 + int(u[j]-'0')
-			if n > max {
-				return true
-			}
-			j++
-		}
-	}
-	return false
 }

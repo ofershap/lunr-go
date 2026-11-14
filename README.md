@@ -81,7 +81,7 @@ This is what "verified" means here: exact equality against the pinned reference 
 - **Pipeline functions are Go functions.** They serialize by their registered label (like lunr), but a custom Go pipeline function cannot be shared with a JS runtime the way data can.
 - Documents are `map[string]any` with field values coerced the way lunr coerces them (strings, numbers, booleans, string arrays). Rich JS object coercion (`Date`, custom `toString`) is out of scope.
 - This package ports lunr.js 2.3.9, the current release line. lunr's own API is stable and small; if lunr ships a new major version, that is new scope.
-- Like lunr.js, keep query edit distances small (lunr's docs advise less than 3). `~N` builds a token set whose size grows with N; absurd values hang in lunr.js and in this port alike (verified against Node).
+- **Fuzzy edit distance is bounded.** lunr.js accepts any `~N` and builds a token set whose size grows with N, so absurd values like `~99999999` hang (verified against Node 22); lunr's docs advise distances below 3. This port rejects N above 10 with a clear `EditDistanceError` instead of hanging - an intentional divergence from lunr.js, and the only one. Everything at or below the bound matches lunr.js bit for bit.
 
 ## Performance
 
