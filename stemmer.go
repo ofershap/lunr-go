@@ -1,6 +1,10 @@
+// This file is a Go port of lunr.js 2.3.9 (https://lunrjs.com),
+// Copyright (C) 2020 Oliver Nightingale, licensed under the MIT License.
+// See NOTICE for the full attribution.
+
 package lunr
 
-// Porter stemmer, ported from lunr.stemmer (lunr.js 2.3.9), which is Seth
+// Porter stemmer, ported from lunr.stemmer (lunr.js 2.3.9, MIT), which is Seth
 // Emont's JavaScript port of the classic algorithm. The original drives every
 // step with JS regexes over UTF-16 code units; this port evaluates the same
 // patterns over code units with a small backtracking matcher, so edge cases
