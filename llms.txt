@@ -1,0 +1,20 @@
+# lunr-go
+
+> lunr.js for Go (github.com/ofershap/lunr-go): a full port of the lunr.js
+> 2.3.9 client-side search engine, verified score-for-score against the npm
+> package (40-query parity with exact float64 equality, byte-identical index
+> serialization both directions, 250 seeded parser fixtures, stemmer parity).
+> Indexes interchange with a running JS frontend. Standard library only, no
+> dependencies.
+
+## Usage
+
+- idx, err := lunr.New(func(b *lunr.Builder) { b.Ref("id"); b.Field("title", lunr.FieldAttributes{}); b.Add(doc, 0) }); idx.Search("title:go^10 search~1") runs the full query language.
+- idx.Query(func(q *lunr.Query) { ... }) for programmatic clauses with per-clause fields, boost, edit distance, wildcards, presence.
+- idx.Serialize() returns the exact string JSON.stringify(lunrIndex) produces on the tested corpus; lunr.LoadIndex(json) reads a JS-serialized index.
+- English pipeline only (stemmer, stop words), matching lunr core scope; fuzzy matching is bounded (distance <= 3, term <= 32 UTF-16 units) where lunr.js hangs.
+
+## Docs
+
+- [README](https://github.com/ofershap/lunr-go#readme): install, feature surface, verified corpus scope, known boundaries, performance, Q&A
+- [pkg.go.dev](https://pkg.go.dev/github.com/ofershap/lunr-go): library API

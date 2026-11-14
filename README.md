@@ -2,11 +2,7 @@
   <img src="assets/hero.svg" alt="lunr-go: the query 'javascript search' returns ranked, highlighted results" width="100%">
   <h1>lunr-go</h1>
   <p><strong>lunr.js for Go: the client-side search engine your JS frontend already ships, verified score-for-score against the original.</strong></p>
-  <p>
-    <a href="https://github.com/ofershap/lunr-go/actions"><img src="https://github.com/ofershap/lunr-go/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-    <a href="https://pkg.go.dev/github.com/ofershap/lunr-go"><img src="https://pkg.go.dev/badge/github.com/ofershap/lunr-go.svg" alt="Go Reference"></a>
-    <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="License: Apache-2.0"></a>
-  </p>
+
 </div>
 
 [lunr.js](https://lunrjs.com) is the de-facto standard for client-side full-text search (about 9.3M npm downloads/week as of November 2026). Indexes built in the browser (or at deploy time in Node) are everywhere. When the same product has a Go backend, the usual options are a rewrite that ranks differently, or a heavyweight search server. lunr-go is a line-by-line port of the lunr.js 2.3.9 engine, verified against the pinned npm package on a differential corpus: same results, same scores, same ordering, same serialized index bytes, on every case that corpus tests (see [Verified against the original](#verified-against-the-original-not-just-inspired-by-it) for exactly what that covers, and [Known boundaries](#known-boundaries-by-design) for what it does not).
@@ -85,7 +81,7 @@ This is what "verified" means here: exact equality against the pinned reference 
 
 ## Performance
 
-Median-style single-run measurements (1s `-benchtime` in Go, timed loops in Node 22), 2,000 synthetic documents (title + body), same corpus, same machine (November 2026). Lower is better; treat as orientation, not a contract.
+Single-run measurements (one run per workload: `-benchtime=1s` in Go, a timed loop in Node 22), 2,000 synthetic documents (title + body), same corpus, same machine (November 2026). No averaging across runs; treat as orientation, not a contract.
 
 | Workload                    | lunr-go    | lunr.js 2.3.9 (Node 22) |
 | --------------------------- | ---------- | ----------------------- |
@@ -129,6 +125,28 @@ Not yet. lunr's core is English-only and so is this port; the `lunr-languages` s
 
 ---
 
-Part of the [gitshow.dev](https://gitshow.dev) Go toolbox - [gailwind](https://github.com/ofershap/gailwind) · [lather](https://github.com/ofershap/lather) · [json5](https://github.com/ofershap/json5) · [poppy-go](https://github.com/ofershap/poppy-go) · [cron-utils](https://github.com/ofershap/cron-utils) · [handlebars-go](https://github.com/ofershap/handlebars-go) · [fxp-go](https://github.com/ofershap/fxp-go) · [fuse-search](https://github.com/ofershap/fuse-search)
+## Contributing
 
-Apache-2.0 © 2026 Ofer Shapira. See [NOTICE](NOTICE) for attribution to lunr.js and fdlibm. Built with the README Builder.
+Issues and PRs welcome - see [CONTRIBUTING.md](CONTRIBUTING.md). Please report security issues privately per [SECURITY.md](SECURITY.md).
+
+---
+
+More projects: [gitshow](https://github.com/ofershap/gitshow) · [real-browser-mcp](https://github.com/ofershap/real-browser-mcp) · [cursor-usage-tracker](https://github.com/ofershap/cursor-usage-tracker) · [mcp-server-markdown](https://github.com/ofershap/mcp-server-markdown) · [readme-builder](https://github.com/ofershap/readme-builder) · [grok-bot-skills](https://github.com/ofershap/grok-bot-skills) · [mashov-parent-brief](https://github.com/ofershap/mashov-parent-brief) · [gailwind](https://github.com/ofershap/gailwind) · [lather](https://github.com/ofershap/lather)
+
+---
+
+## Author
+
+[![Made by ofershap](https://gitshow.dev/api/card/ofershap)](https://gitshow.dev/ofershap)
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=flat&logo=linkedin&logoColor=white)](https://linkedin.com/in/ofershap)
+[![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?style=flat&logo=github&logoColor=white)](https://github.com/ofershap)
+[![Blog](https://img.shields.io/badge/Blog-ofershap.github.io-FF5722?style=flat&logo=rss&logoColor=white)](https://ofershap.github.io/)
+
+---
+
+<sub>README built with [README Builder](https://ofershap.github.io/readme-builder/)</sub>
+
+## License
+
+[MIT](LICENSE) &copy; [Ofer Shapira](https://github.com/ofershap), matching the lunr.js upstream license. See [NOTICE](NOTICE) for attribution to lunr.js and fdlibm.
