@@ -5,7 +5,7 @@
 
 </div>
 
-[lunr.js](https://lunrjs.com) is the de-facto standard for client-side full-text search (about 9.3M npm downloads/week as of November 2026). Indexes built in the browser (or at deploy time in Node) are everywhere. When the same product has a Go backend, the usual options are a rewrite that ranks differently, or a heavyweight search server. lunr-go is a line-by-line port of the lunr.js 2.3.9 engine, verified against the pinned npm package on a differential corpus: same results, same scores, same ordering, same serialized index bytes, on every case that corpus tests (see [Verified against the original](#verified-against-the-original-not-just-inspired-by-it) for exactly what that covers, and [Known boundaries](#known-boundaries-by-design) for what it does not).
+Your docs site or app already searches in the browser with [lunr.js](https://lunrjs.com) - indexes built in the browser or at deploy time in Node are everywhere. Now the same search has to run in your Go backend: an admin panel, an API, a server-rendered page. A rewrite that ranks differently gives users different answers depending on where they typed, and the only other usual option is a heavyweight search server. lunr-go is a line-by-line port of the lunr.js 2.3.9 engine (about 9.3M npm downloads/week as of November 2026), verified against the pinned npm package on a differential corpus: same results, same scores, same ordering, same serialized index bytes, on every case that corpus tests (see [Verified against the original](#verified-against-the-original-not-just-inspired-by-it) for exactly what that covers, and [Known boundaries](#known-boundaries-by-design) for what it does not).
 
 ```bash
 go get github.com/ofershap/lunr-go
